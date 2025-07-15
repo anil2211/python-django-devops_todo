@@ -1,4 +1,4 @@
-#on aws server
+# on aws server
 first launch EC2 instance on aws
 login into ec2 instance
 create folder into ec2 instance mkdir project
