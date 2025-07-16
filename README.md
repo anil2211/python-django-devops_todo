@@ -227,3 +227,50 @@ Task due dates and reminders
 Task categories and priorities
 
 Docker Compose setup
+
+## Install Jenkins
+How to Install Jenkins on Ubuntu EC2
+1. Connect to your EC2 instance
+ssh -i /path/to/your-key.pem ubuntu@your-ec2-public-ip
+2. Update package index
+sudo apt update
+sudo apt upgrade -y
+3. Install Java (Jenkins requires Java 17)
+sudo apt install openjdk-17-jdk -y
+Check Java version:
+java -version
+
+Make sure it outputs something like openjdk version "17.x"
+
+4. Add Jenkins repository and key
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list
+
+5. Update and install Jenkins
+sudo apt update
+sudo apt install jenkins -y
+6. Start and enable Jenkins service
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+Check Jenkins service status:
+sudo systemctl status jenkins
+7. Open port 8080 in your EC2 security group
+Go to AWS EC2 Console → Security Groups → Select your instance’s security group.
+
+Edit inbound rules.
+
+Add a new rule:
+
+Type: Custom TCP
+
+Port range: 8080
+
+Source: Anywhere (0.0.0.0/0) or your IP for security
+
+8. Access Jenkins web interface
+Open a browser and go to:
+http://your-ec2-public-ip:8080
+9. Get initial admin password
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+Use this password to unlock Jenkins in the web UI.

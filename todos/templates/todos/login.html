@@ -1,0 +1,14 @@
+{% extends 'todos/base.html' %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="container mt-5 text-center border rounded p-4 shadow" style="max-width: 400px;">
+
+  <h2>Login</h2>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Login</button>
+  </form>
+  <p>New user? <a href="{% url 'signup' %}">Create an account</a>.</p>
+</div>
+{% endblock %}
