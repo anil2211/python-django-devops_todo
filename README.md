@@ -431,3 +431,11 @@ To remove old containers/images if needed:
 docker ps -a           # list all containers
 docker rm <container>  # remove container
 docker rmi <image>     # remove images
+
+connect with github generate the aacess token and add in jenkins
+
+# Step 14: Configure Jenkins to use GitHub Personal Access Token
+Open Jenkins Dashboard → Manage Jenkins → Configure System
+
+# install docker compose
+sudo apt install docker-compose -y
