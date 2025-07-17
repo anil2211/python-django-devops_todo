@@ -450,3 +450,49 @@ services:
 docker-compose down
 docker-compose up -d --force-recreate --no-deps --build web
 
+
+
+## Ansible installation
+# Install Ansible on Ubuntu 20.04
+launch 1 master node
+# launch 3 worker nodes
+# install ansible on master node
+sudo apt update
+sudo apt install ansible -y
+
+paste the pem key there
+cd .ssh
+sudo vim ansible_demo.pem
+
+
+in master node to ssh into server node 
+sudo chown ubuntu:ubuntu ~/.ssh/ansible-master.pem
+chmod 400 ~/.ssh/ansible-master.pem
+
+sudo ssh -i ~/.ssh/ansible_demo.pem ubuntu@65.1.148.171
+
+logout
+
+cat /etc/ansible/hosts
+if no inventory file or host found the first create the folder ansible
+mkdir ansible
+cd ansible
+
+vim hosts
+ubuntu@ip-172-31-4-214:~/ansible$ 
+ubuntu@ip-172-31-4-214:~/ansible$ cat hosts
+[servers]
+server1 ansible_host=13.126.51.210
+server2 ansible_host=13.203.101.195
+server3 ansible_host=65.1.108.128
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+
+to check weather invetory is correct or not
+ansible-inventory --list -y -i  /home/ubuntu/ansible/hosts
+
+to check connection
+ansible all -i /home/ubuntu/ansible/hosts -m ping --private-key=~/.ssh/ansible-master.pem
+
+to check ram space
+ansible all -i /home/ubuntu/ansible/hosts -m shell -a "free -h" --private-key=~/.ssh/ansible-master.pem
