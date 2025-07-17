@@ -280,3 +280,154 @@ sudo chmod -R 755 /home/ubuntu/projects
 sudo mv /home/ubuntu/projects/python-django-devops_todo /var/lib/jenkins/workspace/
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
+
+# open port 8080
+jenkins create node
+
+cd /var/lib/jenkins/workspace/python-django-devops_todo
+# Build Docker image
+docker build -t todo-app1 .
+# Run container on port 8080
+docker run -d -p 8001:8001 --name todo-app-container1 todo-app1
+
+
+# 🚀 Jenkins Setup and Docker-Based Deployment on Ubuntu EC2
+
+This guide provides clear, step-by-step instructions to install Jenkins on an Ubuntu EC2 instance, configure it to run Docker-based builds, and deploy a Python/Django app using Jenkins.
+
+---
+
+## 🧰 Prerequisites
+
+- AWS EC2 instance (Ubuntu 22.04 preferred)
+- SSH access with `.pem` key
+- Docker and Dockerfile in your project
+- GitHub repo for your app (public or private)
+- Basic understanding of terminal and Linux commands
+
+---
+
+## 🛠️ Step-by-Step Setup
+
+### ✅ Step 1: Connect to Your EC2 Instance
+
+```bash
+ssh -i /path/to/your-key.pem ubuntu@your-ec2-public-ip
+✅ Step 2: Update the System
+
+sudo apt update
+sudo apt upgrade -y
+✅ Step 3: Install Java (Required for Jenkins)
+sudo apt install openjdk-17-jdk -y
+java -version
+You should see something like:
+
+openjdk version "17.x.x"
+✅ Step 4: Add Jenkins Repository and Key
+
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | \
+sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+https://pkg.jenkins.io/debian-stable binary/ | \
+sudo tee /etc/apt/sources.list.d/jenkins.list
+
+✅ Step 5: Install Jenkins
+sudo apt update
+sudo apt install jenkins -y
+
+✅ Step 6: Start and Enable Jenkins
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+sudo systemctl status jenkins
+
+✅ Step 7: Allow Jenkins Port in EC2 Security Group
+
+Go to AWS Console → EC2 → Security Groups
+
+Find the group attached to your instance
+
+Click Edit Inbound Rules and add:
+
+Type: Custom TCP
+
+Port: 8080 (Jenkins)
+
+Source: 0.0.0.0/0 (or restrict to your IP)
+
+✅ Step 8: Access Jenkins in Browser
+Open your browser:
+
+http://your-ec2-public-ip:8080
+✅ Step 9: Unlock Jenkins
+On the Jenkins unlock screen, run this on your EC2 terminal:
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+Copy the password into the web UI.
+
+🐳 Docker + Jenkins Integration
+✅ Step 10: Install Docker (if not already)
+sudo apt install docker.io -y
+sudo systemctl start docker
+sudo systemctl enable docker
+✅ Step 11: Give Jenkins Docker Access
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
+Important: Reboot the instance after this to apply group changes:
+sudo reboot
+📦 Project Deployment via Jenkins
+✅ Step 12: Prepare Your Project
+Assuming your project is cloned to:
+/home/ubuntu/projects/python-django-devops_todo/
+Make sure the Dockerfile is in the root.
+
+Change ownership and permissions:
+
+sudo chown -R jenkins:jenkins /home/ubuntu/projects
+sudo chmod -R 755 /home/ubuntu/projects
+Move project into Jenkins workspace (optional but simplifies access):
+
+sudo mv /home/ubuntu/projects/python-django-devops_todo /var/lib/jenkins/workspace/
+✅ Step 13: Create a Jenkins Job
+Open Jenkins Dashboard → New Item
+
+Choose Freestyle Project
+
+Name it: Todo-dev
+
+Under Source Code Management, connect your GitHub repo (if desired)
+
+In Build section, choose Execute Shell
+
+Use this script:
+
+#!/bin/bash
+set -xe
+
+cd /var/lib/jenkins/workspace/python-django-devops_todo
+
+# Build Docker image
+docker build -t todo-app .
+
+# Stop and remove existing container (optional safety step)
+docker rm -f todo-app-container || true
+
+# Run Docker container
+docker run -d -p 8001:8001 --name todo-app-container todo-app
+✅ Port Reference
+Port	Purpose
+8080	Jenkins
+8001	Django App
+
+Make sure both ports are opened in your EC2 security group.
+
+🎉 Final Test
+Visit your deployed Django app at:
+
+http://your-ec2-public-ip:8001
+
+🧹 Optional: Clean Docker Resources
+To remove old containers/images if needed:
+docker ps -a           # list all containers
+docker rm <container>  # remove container
+docker rmi <image>     # remove image
