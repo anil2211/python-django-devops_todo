@@ -265,7 +265,7 @@ Add a new rule:
 Type: Custom TCP
 
 Port range: 8080
-
+Port range: 8001
 Source: Anywhere (0.0.0.0/0) or your IP for security
 
 8. Access Jenkins web interface
@@ -274,3 +274,9 @@ http://your-ec2-public-ip:8080
 9. Get initial admin password
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 Use this password to unlock Jenkins in the web UI.
+
+sudo chown -R jenkins:jenkins /home/ubuntu/projects
+sudo chmod -R 755 /home/ubuntu/projects
+sudo mv /home/ubuntu/projects/python-django-devops_todo /var/lib/jenkins/workspace/
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
