@@ -439,3 +439,14 @@ Open Jenkins Dashboard → Manage Jenkins → Configure System
 
 # install docker compose
 sudo apt install docker-compose -y
+create docker-compose file
+version : "3.3"
+services: 
+  web:
+    build : .
+    ports : 
+      - "8001:8001"
+
+docker-compose down
+docker-compose up -d --force-recreate --no-deps --build web
+
