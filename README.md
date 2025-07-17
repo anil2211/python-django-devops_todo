@@ -419,15 +419,15 @@ Port	Purpose
 8080	Jenkins
 8001	Django App
 
+
 Make sure both ports are opened in your EC2 security group.
 
 🎉 Final Test
 Visit your deployed Django app at:
-
 http://your-ec2-public-ip:8001
 
 🧹 Optional: Clean Docker Resources
 To remove old containers/images if needed:
 docker ps -a           # list all containers
 docker rm <container>  # remove container
-docker rmi <image>     # remove image
+docker rmi <image>     # remove images
