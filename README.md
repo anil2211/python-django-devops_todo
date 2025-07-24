@@ -936,9 +936,7 @@ cd projects
 git clone <your-repo-name>
 cd <your-repo-name>
 2. Build the Docker Image
-bash
-Copy
-Edit
+
 docker build -t anilvcr/todoapp:v1 .
 docker images
 3. Run the Docker Container
