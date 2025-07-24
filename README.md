@@ -182,9 +182,7 @@ lsof -i:8000  # Find the PID of the process
 kill <PID>    # Kill the process running on port 8000
 🐳 Docker Deployment
 1. Install Docker on EC2:
-bash
-Copy
-Edit
+
 sudo apt install docker.io -y
 2. Create a Dockerfile in the project root:
 dockerfile
@@ -496,3 +494,553 @@ ansible all -i /home/ubuntu/ansible/hosts -m ping --private-key=~/.ssh/ansible-m
 
 to check ram space
 ansible all -i /home/ubuntu/ansible/hosts -m shell -a "free -h" --private-key=~/.ssh/ansible-master.pem
+
+to create playbooks
+mkdir playbooks
+cd playbooks
+sudo vim create_file.yml
+---
+- name : This playbook create a file
+  hosts : all
+  become : true
+  tasks :
+    - name : create a file
+      file : 
+         path : /home/ubuntu/file.txt
+         state : touch
+
+to run ansible playbook
+ansible-playbook -i /home/ubuntu/ansible/hosts create_file.yml --private-key=~/.ssh/ansible-master.pem
+
+verify on all three server file.txt file is created
+
+# create a user
+sudo vim create_user.yml
+---
+- name : this will create a user
+  hosts : all
+  become : true
+  tasks :
+    - name : create a user
+      user : name=Anil
+
+ansible-playbook -i /home/ubuntu/ansible/hosts create_user.yml --private-key=~/.ssh/ansible-master.pem
+
+to check on server node
+cat /etc/passwd
+
+# install package docker
+create file 
+sudo vim docker.yml
+---
+- name: This playbook will install Docker
+  hosts: all
+  become: true
+  tasks:
+    - name: Add Docker GPG apt Key
+      apt_key:
+         url: https://download.docker.com/linux/ubuntu/gpg
+         state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+         repo: deb https://download.docker.com/linux/ubuntu focal stable
+         state: present
+    - name: Install Docker
+      apt:
+       name: docker-ce
+       state: latest
+
+ansible-playbook -i /home/ubuntu/ansible/hosts docker.yml --private-key=~/.ssh/ansible-master.pem
+
+🚀 Ansible Installation and Configuration on Ubuntu 20.04
+This guide helps you set up Ansible on a master node and connect to three worker nodes using SSH and a PEM key.
+
+✅ 1. Infrastructure Setup
+1 Master Node (Ansible controller)
+
+3 Worker Nodes (Managed by Ansible)
+
+✅ 2. Install Ansible on the Master Node
+Run the following on your Ansible master server:
+
+
+sudo apt update
+sudo apt install ansible -y
+✅ 3. Configure SSH Access with PEM Key
+🗝️ Upload and secure your PEM key:
+
+cd ~/.ssh
+sudo vim ansible-master.pem  # Paste your PEM content here
+sudo chown ubuntu:ubuntu ansible-master.pem
+chmod 400 ansible-master.pem
+🔐 SSH into a worker node to verify access:
+
+ssh -i ~/.ssh/ansible-master.pem ubuntu@<WORKER_PUBLIC_IP>
+Replace <WORKER_PUBLIC_IP> with the IP address of a worker node. Type logout to exit after verification.
+
+✅ 4. Configure Ansible Inventory
+If the inventory file doesn't exist, create the ansible directory and the hosts file:
+
+
+mkdir ~/ansible
+cd ~/ansible
+vim hosts
+Paste the following content:
+
+ini
+Copy
+Edit
+[servers]
+server1 ansible_host=13.126.51.210
+server2 ansible_host=13.203.101.195
+server3 ansible_host=65.1.108.128
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+✅ 5. Validate the Inventory
+🔎 Check inventory structure:
+
+ansible-inventory --list -y -i ~/ansible/hosts
+📡 Test connectivity to all nodes:
+
+ansible all -i ~/ansible/hosts -m ping --private-key=~/.ssh/ansible-master.pem
+✅ 6. Running Ad-Hoc Commands
+🧠 Example: Check RAM usage on all nodes:
+
+ansible all -i ~/ansible/hosts -m shell -a "free -h" --private-key=~/.ssh/ansible-master.pem
+📘 Creating and Running Ansible Playbooks
+📁 1. Create a Playbooks Directory
+
+mkdir ~/playbooks
+cd ~/playbooks
+📄 2. Playbook to Create a File
+
+vim create_file.yml
+
+---
+- name: Create a file on all servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Create /home/ubuntu/file.txt
+      file:
+        path: /home/ubuntu/file.txt
+        state: touch
+▶️ Run the playbook:
+
+ansible-playbook -i ~/ansible/hosts create_file.yml --private-key=~/.ssh/ansible-master.pem
+Check file.txt exists on all worker nodes.
+
+👤 3. Playbook to Create a User
+
+vim create_user.yml
+
+---
+- name: Create a user on all servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Create user 'Anil'
+      user:
+        name: Anil
+▶️ Run the playbook:
+
+ansible-playbook -i ~/ansible/hosts create_user.yml --private-key=~/.ssh/ansible-master.pem
+🔍 Verify on worker nodes:
+
+cat /etc/passwd | grep Anil
+🐳 4. Playbook to Install Docker
+
+vim docker.yml
+
+---
+- name: Install Docker on all servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Install Docker CE
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: yes
+▶️ Run the playbook:
+
+ansible-playbook -i ~/ansible/hosts docker.yml --private-key=~/.ssh/ansible-master.pem
+✅ Final Notes
+Ensure all worker nodes have Python 3 installed (Ansible requires it).
+
+If SSH fails, double-check:
+
+PEM file path and permissions.
+
+The ubuntu user exists on the remote machines.
+
+All playbooks are YAML files and must follow proper indentation.
+
+
+
+## Kubernetes tut
+first launch the ec2 on aws
+login into ec2 instance and then install the minikube
+command to install minikube on ubuntu linux
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+minikube start
+minikube start --driver=docker
+install docker
+command to install docker
+# Update package index and install prerequisites
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
+
+# Create keyring directory if it doesn't exist
+sudo install -m 0755 -d /etc/apt/keyrings
+
+# Download Docker’s official GPG key
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+
+# Set permissions for the GPG key
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the Docker repository to Apt sources
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update the package index again after adding Docker repo
+sudo apt-get update
+
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+minikube start --driver=docker
+sudo usermod -aG docker $USER && newgrp docker
+minikube start --driver=docker
+
+kubectl get po -A
+sudo snap install kubectl --classic
+kubectl get po -A
+**********************************************Kunernetes***************************************************************************************
+✅ Kubernetes Setup on AWS EC2 with Minikube & Docker
+This guide walks you through setting up a local single-node Kubernetes cluster using Minikube on an Ubuntu EC2 instance on AWS.
+
+🚀 Step 1: Launch EC2 Instance
+Go to the AWS Management Console.
+
+Launch a Ubuntu 22.04 or 24.04 EC2 instance (at least t3.medium recommended).
+
+Open ports (optional for service testing): 30000-32767, 22, 80, 443.
+
+SSH into your instance:
+
+ssh -i your-key.pem ubuntu@your-ec2-public-ip
+🔧 Step 2: Install Docker
+Run the following commands one by one:
+
+# Update package index and install prerequisites
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+
+# Create keyring directory
+sudo install -m 0755 -d /etc/apt/keyrings
+
+# Download Docker’s GPG key
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+
+# Set correct permissions
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add Docker’s official APT repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update and install Docker packages
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Add your user to docker group and activate it
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Test Docker
+docker version
+📦 Step 3: Install Minikube
+# Download Minikube binary
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+
+# Install and clean up
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+# Confirm installation
+minikube version
+⚙️ Step 4: Start Minikube with Docker Driver
+Make sure Docker is working before proceeding.
+
+# Start Minikube with Docker driver
+minikube start --driver=docker
+If you run into errors about disk space or cores, consider cleaning up with:
+
+docker system prune -a -f --volumes
+You can delete and restart Minikube if needed:
+
+minikube delete
+minikube start --driver=docker
+🧠 Step 5: Install kubectl (Kubernetes CLI)
+Don't use snap inside EC2 (it’s not reliable on headless servers). Use APT instead.
+
+# Install apt transport tools
+sudo apt-get install -y apt-transport-https curl
+
+# Add GPG key for Kubernetes
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+# Add Kubernetes apt repo
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] \
+https://apt.kubernetes.io/ kubernetes-xenial main" | \
+sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
+
+# Update and install kubectl
+sudo apt-get update
+sudo apt-get install -y kubectl
+
+# Test it
+kubectl version --client
+🧪 Step 6: Verify Kubernetes Cluster
+# Check cluster nodes
+kubectl get nodes
+
+# View all pods in all namespaces
+kubectl get pods -A
+
+*************************app deployment***************************************
+************on localhost******************
+create a directory
+mkdir projects
+cd projects
+git clone repo name
+cd repo name
+
+docker build -t anilvcr/todoapp:v1 .
+docker images
+docker run -it -p 8001:8001 200607717254
+
+**********on kubernetes**********
+create directory
+mkdir k8s
+cd k8s
+vim pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: todo-app
+spec:
+  containers:
+  - name: todo-app
+    image: anilvcr/todoapp:v1
+    ports:
+    - containerPort: 8001
+
+save it 
+
+run command  
+kubectl apply -f pod.yml
+kubectl get pods
+kubectl get pods -o wide
+kubectl describe pod todo-app
+kubectl logs todo-app
+minikube ssh
+inside minikube- curl -L  http://10.244.0.4:8001
+
+now create a deployment
+vim deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+  labels:
+    app: todo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-app
+  template:
+    metadata:
+      labels:
+        app: todo-app
+    spec:
+      containers:
+      - name: todo-app
+        image: anilvcr/todoapp:v1
+        ports:
+        - containerPort: 8001
+
+kubectl apply -f deployment.yml
+
+
+vim service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-app
+spec:
+  type: NodePort
+  selector:
+    app: todo-app
+  ports:
+    - port: 80
+      # By default and for convenience, the `targetPort` is set to
+      # the same value as the `port` field.
+      targetPort: 8001
+      # Optional field
+      # By default and for convenience, the Kubernetes control plane
+      # will allocate a port from a range (default: 30000-32767)
+      nodePort: 30007
+
+kubectl apply -f service.yml
+kubectl get svc
+minikube service todo-app --url
+Notepad run as admin-C:\Windows\System32\drivers\etc
+hosts- add ip address 127.0.0.1 todo-app.com
+
+# 📝 Django TODO App - Localhost & Kubernetes Deployment Guide
+
+This guide explains how to build and run the Django TODO App using Docker on localhost and then deploy it on a Kubernetes cluster using Minikube.
+
+---
+
+## 🚀 Application Deployment
+
+---
+
+## 🧪 Localhost Deployment (Docker)
+
+### 1. Clone the Repository
+```bash
+mkdir projects
+cd projects
+git clone <your-repo-name>
+cd <your-repo-name>
+2. Build the Docker Image
+bash
+Copy
+Edit
+docker build -t anilvcr/todoapp:v1 .
+docker images
+3. Run the Docker Container
+docker run -it -p 8001:8001 anilvcr/todoapp:v1
+☸️ Kubernetes Deployment (Minikube)
+1. Start Minikube
+minikube start
+2. Create Kubernetes Manifests Directory
+mkdir k8s
+cd k8s
+3. Create a Pod Manifest
+Create pod.yml:
+
+yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: todo-app
+spec:
+  containers:
+  - name: todo-app
+    image: anilvcr/todoapp:v1
+    ports:
+    - containerPort: 8001
+Apply the pod:
+
+kubectl apply -f pod.yml
+kubectl get pods
+kubectl get pods -o wide
+kubectl describe pod todo-app
+kubectl logs todo-app
+✅ Optionally, you can SSH into the Minikube VM and test it:
+
+minikube ssh
+curl -L http://<pod-ip>:8001
+4. Create a Deployment
+Create deployment.yml:
+
+yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+  labels:
+    app: todo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-app
+  template:
+    metadata:
+      labels:
+        app: todo-app
+    spec:
+      containers:
+      - name: todo-app
+        image: anilvcr/todoapp:v1
+        ports:
+        - containerPort: 8001
+Apply the deployment:
+
+kubectl apply -f deployment.yml
+5. Create a Service
+Create service.yml:
+
+yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-app
+spec:
+  type: NodePort
+  selector:
+    app: todo-app
+  ports:
+    - port: 80
+      targetPort: 8001
+      nodePort: 30007
+Apply the service:
+
+kubectl apply -f service.yml
+kubectl get svc
+6. Access the Application
+Get the Minikube service URL:
+
+minikube service todo-app --url
+Copy the URL and open it in your browser.
+
+Example:
+
+http://127.0.0.1:59930
+🌐 Custom Domain Setup (Optional)
+To access the app with a custom domain like todo-app.com:
+
+1. Open the hosts file with admin rights:
+Open Notepad as Administrator
+
+Navigate to:
+
+C:\Windows\System32\drivers\etc\hosts
+Add this line at the end:
+
+127.0.0.1 todo-app.com
+Now visit http://todo-app.com:30007 in your browser.
