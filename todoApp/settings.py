@@ -26,7 +26,10 @@ SECRET_KEY = '8)810zj@#^2xp=1=2rkozbv8#)gub6m1a^9qf&)d-9&x9*c2a_'
 DEBUG = False
 
 ALLOWED_HOSTS = ["*", "python-django-devops-todo-1.onrender.com"]
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://python-django-devops-todo-1.onrender.com",
+    "https://*.onrender.com",  # wildcard for Render apps
+]
 
 # Application definition
 
